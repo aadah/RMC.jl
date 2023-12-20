@@ -1,0 +1,59 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{rmc_cmds}
+\typeout{Document Style `rmc_cmds' - environment}
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
+\RequirePackage{amsthm}
+
+% gravity
+\newcommand{\g}{\ensuremath{\mathbf{g}}}
+
+% position and momentum
+\newcommand{\q}{\ensuremath{\mathbf{q}}}
+\newcommand{\p}{\ensuremath{\mathbf{p}}}
+\newcommand{\qof}[1]{\ensuremath{\q(#1)}}
+\newcommand{\pof}[1]{\ensuremath{\p(#1)}}
+\newcommand{\qt}{\qof{t}}
+\newcommand{\pt}{\pof{t}}
+\newcommand{\qi}{\ensuremath{\q_i}}
+\renewcommand{\pi}{\ensuremath{\p_i}}
+\newcommand{\qim}{\ensuremath{\q_{i-1}}}
+\newcommand{\pim}{\ensuremath{\p_{i-1}}}
+\newcommand{\qip}{\ensuremath{\q_{i+1}}}
+\newcommand{\pip}{\ensuremath{\p_{i+1}}}
+
+% theta
+\newcommand{\thetab}{\ensuremath{\boldsymbol{\theta}}}
+\newcommand{\thetai}{\ensuremath{\thetab_i}}
+\newcommand{\thetaim}{\ensuremath{\thetab_{i-1}}}
+\newcommand{\thetaip}{\ensuremath{\thetab_{i+1}}}
+\newcommand{\thetaof}[1]{\ensuremath{\thetab(#1)}}
+
+% height
+\newcommand{\h}{\ensuremath{h}}
+\newcommand{\hi}{\ensuremath{\h_i}}
+\newcommand{\hof}[1]{\ensuremath{\h(#1)}}
+
+% target
+\newcommand{\F}{\ensuremath{F}}
+\newcommand{\Fof}[1]{\ensuremath{\F(#1)}}
+\newcommand{\target}{\ensuremath{\Fof{\thetab}}}
+
+% energy
+\newcommand{\E}{\ensuremath{E}}
+\newcommand{\Eof}[1]{\ensuremath{\E(#1)}}
+\newcommand{\energy}{\ensuremath{\Eof{\thetab}}}
+
+% surface
+\renewcommand{\S}{\ensuremath{S}}
+\newcommand{\Sof}[1]{\ensuremath{\S(#1)}}
+\newcommand{\surface}{\ensuremath{\Sof{\thetab}}}
+
+% constraints
+\newcommand{\C}{\ensuremath{C}}
+\newcommand{\Cj}[1]{\ensuremath{\C_{#1}}}
+\newcommand{\CS}{\ensuremath{\Cj{\S}}}
+\newcommand{\Cjof}[2]{\ensuremath{\Cj{#1}(#2)}}
+\newcommand{\CSof}[1]{\ensuremath{\CS({#1})}}

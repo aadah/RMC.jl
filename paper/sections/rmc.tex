@@ -1,0 +1,144 @@
+\section{Ricochet Monte Carlo} \label{s:rmc}
+
+The intuition behind Ricochet Monte Carlo (RMC) is to treat our target
+distribution or objective as a sort of hilly terrain across which a point
+particle freely bounces along. The points where the particle collides with this
+surface are candidate samples to either be accepted and rejected. The particle
+will continue to bounce, until it settles in some "valley", at which time it is
+picked up and tossed in a random direction to repeat the process.
+
+Let \target{} be some probability distribution to sample from, defined as
+\begin{equation*}
+    \target{} \coloneqq \frac{\energy{}}{Z}
+\end{equation*}
+where $Z$ is some intractable normalizing constant and \energy{} is the
+associated joint distribution, which is assumed tractable and known. We are
+interested in generating samples $\thetai{} \sim \F$ that live in a continuous
+$d$-dimensional vector space, where $i$ means the $i$th sample. We perform the
+standard transformation as done in HMC and define our \emph{surface} as
+\begin{equation*}
+    \label{eq:surface}
+    \surface{} \coloneqq - \log \energy{}.
+\end{equation*}
+If instead \target{} is a nonlinear objective function to minimize, then we
+simply set $\surface{} \coloneqq \target{}$.
+
+\subsection{Auxillary variables} \label{ss:auxillary}
+
+For each value of \thetab{}, we associate an auxillary \emph{height} scalar
+\h{}. We define a $(d+1)$-length \emph{position} vector $\q{} \coloneqq
+[\thetab{}; \h{}]$. We also create an auxillary $(d+1)$-length \emph{position}
+vector \p{}. We define
+\begin{align*}
+    \thetaof{\qi{}} &\coloneqq  \thetai{} \\
+    \hof{\qi{}}     &\coloneqq  \hi{}
+\end{align*}
+to respectively refer to the specific sample and height components of any
+particular \qi{}. Similarly, we overload \thetaof{\pi{}} to be the vector of
+the first $d$ entries of \pi{}.
+
+We maintain an invariant where the particle is always "above" the surface \S,
+i.e.
+\begin{equation}
+    \label{eq:collision}
+    \CSof{\q{}} \coloneqq \hof{\q{}} - \Sof{\thetaof{\q{}}} > 0.
+\end{equation}
+\cref{eq:collision} defines the \emph{surface collision} constraint \CS{}. This
+terminology will be used to distinguish it from any later nonlinear constraints
+that will be handled in the optimization formulation. All together, \q{}, \p{},
+and \S{} fully describe the state of our system.
+
+\subsection{Simulation with Hamiltonian dynamics} \label{ss:hamiltonian}
+
+To simulate the particle's trajectory across the surface, we start with its
+associated Hamiltonian equations. Given scalars $m > 0$ and $g > 0$, we define
+\begin{align*}
+    H(\q{}, \p{}) &\coloneqq U(\q{}) + K(\p{}) \\
+    U(\q{}) &\coloneqq m \cdot g \cdot \hof{\q{}} \\
+    K(\p{}) &\coloneqq \frac{\lVert \p{} \rVert^2}{2m}.
+\end{align*}
+We respectively call $m$ and $g$ the \emph{mass} and \emph{gravity}, and both
+are hyperparameters of RMC. For convenience of notation, let $\g{} \coloneqq
+[\mathbf{0}_d; g]$ where $\mathbf{0}_d$ is a $d$-length zero vector. The
+dynamics of the particle are governed by the following system of differential
+equations:
+\begin{alignat}{4}
+    &\frac{d\q{}}{dt} = &&\frac{\partial H}{\partial \p{}} = &&\frac{dK}{d\p{}} = &&\frac{\p{}}{m} \label{eq:dqdt} \\
+    &\frac{d\p{}}{dt} = -&&\frac{\partial H}{\partial \q{}} = -&&\frac{dU}{d\q{}} = -&&m\g{}. \label{eq:dpdt}
+\end{alignat}
+In order to simulate the particle trajectory, HMC employs Euler's "leapfrog"
+integration, which requires an acceptance step to account for the case when the
+Hamiltonian $H$ isn't conserved. In RMC's case, because \cref{eq:dqdt,eq:dpdt}
+don't involve what could be an arbitrarily complex \surface{}, we can easily
+solve for the time-parametrized closed forms:
+\begin{align}
+    \qt{} &= \qim{} + \frac{\pim{}}{m}t - \frac{\g{}}{2}t^2 \label{eq:qt} \\
+    \pt{} &= \pim{} - m\g{}t. \label{eq:pt}
+\end{align}
+We use \cref{eq:qt,eq:pt} to find the next candidate sample \thetai{} by
+computing the earliest $t'$ for which $\CSof{\qof{t'}} = 0$. This search is done
+using a two-step process that increases $t'$ in doubling increments until a
+collision, and then does a binary search within a time-bounded window to find
+the near-exact $t'$ representing the point of collision while still satisfying
+$\CSof{\qof{t'}} > 0$. [ALGORITHM TODO] outlines this in fuller detail.
+
+\subsection{Sampling at collisions} \label{ss:sampling}
+
+Once $t'$ is had, we compute the position $\qi{} \coloneqq \qof{t'}$ and
+momentum $\pi{} \coloneqq \pof{t'}$, and the candidate sample is thus
+$\thetaof{\qi{}}$. The acceptance probability of the sample is defined in terms
+of \emph{lateral momentum}: ignoring the height component, if the angle of the
+reflection is particularly sharp, we are more likely to reject it. The reasoning
+is that these "hard" bounces represent regions of low probability in \target{}.
+If
+\begin{equation*}
+    \mathbf{n} \coloneqq \frac{\nabla \CSof{\qi{}}}{\lVert \nabla \CSof{\qi{}} \rVert}
+\end{equation*}
+is the unit normal at \qi{}, we can define the momentum after reflecting off the
+surface as
+\begin{equation}
+    \overleftarrow{\pi{}} \coloneqq \pi{} - 2 \cdot \left<\pi{}, \mathbf{n}\right> \cdot \mathbf{n}. \label{eq:p_after_simple}
+\end{equation}
+Our acceptance probability is thus
+\begin{equation}
+    \Pr\left(\textsc{accept} \mid \pi{}, \overleftarrow{\pi{}} \right) 
+    \coloneqq \frac{1}{2}
+    \left(1 + \frac{
+        \left<\thetaof{\pi{}},\thetaof{\overleftarrow{\pi{}}}\right>
+    }{
+        \lVert \thetaof{\pi{}} \rVert \lVert \thetaof{\overleftarrow{\pi{}}} \rVert
+    }\right).
+\end{equation}
+If accepted, then we set $\thetai \leftarrow \thetaof{\qi{}}$. Whether the
+sample is accepted or rejected, we still continue on with the simulation,
+starting from $(\qi{}, \pi{})$.
+
+\subsection{Entropic dissipation} \label{ss:entropy}
+
+We modify \cref{eq:p_after_simple}
+\begin{equation}
+    \overleftarrow{\pi{}} \coloneqq \left(\pi{} - 2 \cdot \left<\pi{}, \mathbf{n}\right> \cdot \mathbf{n}\right). \label{eq:p_after}
+\end{equation}
+
+% - "inelastic collisions"
+% - "coefficient of restitution" -> p_new = CoR * p_old
+
+\subsubsection{Refreshing momentum} \label{ss:momentum}
+% - when the kinetic energy K has "puttered out" / "lost steam"
+
+\subsection{Handling boundary constraints} \label{ss:constraints}
+% - motivation: some \theta_j could be a non-negative parameter in a graphical model, e.g. Beta
+% - we could take the log of them, or treat them as an infinitely tall wall
+% - constraint as 3-tuple (j, a, b) where a < b and j \in {1,...,d}
+% - normal simply zero vector with 1 at location j
+% - reflection is just multiple p_j by -1
+% - we *don't* sample if collision is on boundary wall, and not S
+
+\subsection{Initialization} \label{ss:initialization}
+
+\subsection{Full algorithm} \label{ss:algo}
+% - what are the hyperparameters
+% - initialization
+% - starting height?
+% - clamp q to any boundary constraints
+% - actual pseudocode
