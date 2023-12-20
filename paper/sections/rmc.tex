@@ -72,8 +72,8 @@ Hamiltonian $H$ isn't conserved. In RMC's case, because \cref{eq:dqdt,eq:dpdt}
 don't involve what could be an arbitrarily complex \surface{}, we can easily
 solve for the time-parametrized closed forms:
 \begin{align}
-    \qt{} &= \qim{} + \frac{\pim{}}{m}t - \frac{\g{}}{2}t^2 \label{eq:qt} \\
-    \pt{} &= \pim{} - m\g{}t. \label{eq:pt}
+    \qt{} &= \qz{} + \frac{\pz{}}{m}t - \frac{\g{}}{2}t^2 \label{eq:qt} \\
+    \pt{} &= \pz{} - m\g{}t. \label{eq:pt}
 \end{align}
 We use \cref{eq:qt,eq:pt} to find the next candidate sample \thetai{} by
 computing the earliest $t'$ for which $\CSof{\qof{t'}} = 0$. This search is done
@@ -84,47 +84,59 @@ $\CSof{\qof{t'}} > 0$. [ALGORITHM TODO] outlines this in fuller detail.
 
 \subsection{Sampling at collisions} \label{ss:sampling}
 
-Once $t'$ is had, we compute the position $\qi{} \coloneqq \qof{t'}$ and
-momentum $\pi{} \coloneqq \pof{t'}$, and the candidate sample is thus
-$\thetaof{\qi{}}$. The acceptance probability of the sample is defined in terms
-of \emph{lateral momentum}: ignoring the height component, if the angle of the
-reflection is particularly sharp, we are more likely to reject it. The reasoning
-is that these "hard" bounces represent regions of low probability in \target{}.
-If
+Once $t'$ is had, we compute the position $\qu{t'} \coloneqq \qof{t'}$ and
+momentum $\pu{t'} \coloneqq \pof{t'}$. The acceptance probability of the
+candidate sample $\thetaof{\qu{t'}}$ is defined in terms of \emph{lateral
+momentum}: ignoring the height component, if the angle of the reflection is
+particularly sharp, we are more likely to reject it. The reasoning is that these
+"hard" bounces represent regions of low probability in \target{}. If we let
 \begin{equation*}
-    \mathbf{n} \coloneqq \frac{\nabla \CSof{\qi{}}}{\lVert \nabla \CSof{\qi{}} \rVert}
+    \mathbf{n} \coloneqq \frac{\nabla \CSof{\qu{t'}}}{\lVert \nabla \CSof{\qu{t'}} \rVert}
 \end{equation*}
-is the unit normal at \qi{}, we can define the momentum after reflecting off the
-surface as
+be the unit normal at \qu{t'}, we can define the momentum after reflecting off
+the surface as
 \begin{equation}
-    \overleftarrow{\pi{}} \coloneqq \pi{} - 2 \cdot \left<\pi{}, \mathbf{n}\right> \cdot \mathbf{n}. \label{eq:p_after_simple}
+    \overleftarrow{\pu{t'}} \coloneqq \pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}. \label{eq:p_after_simple}
 \end{equation}
 Our acceptance probability is thus
 \begin{equation}
-    \Pr\left(\textsc{accept} \mid \pi{}, \overleftarrow{\pi{}} \right) 
+    \Pr\left(\textsc{accept} \mid \pu{t'}, \overleftarrow{\pu{t'}} \right) 
     \coloneqq \frac{1}{2}
     \left(1 + \frac{
-        \left<\thetaof{\pi{}},\thetaof{\overleftarrow{\pi{}}}\right>
+        \left<\thetaof{\pu{t'}},\thetaof{\overleftarrow{\pu{t'}}}\right>
     }{
-        \lVert \thetaof{\pi{}} \rVert \lVert \thetaof{\overleftarrow{\pi{}}} \rVert
+        \lVert \thetaof{\pu{t'}} \rVert \lVert \thetaof{\overleftarrow{\pu{t'}}} \rVert
     }\right).
 \end{equation}
-If accepted, then we set $\thetai \leftarrow \thetaof{\qi{}}$. Whether the
-sample is accepted or rejected, we still continue on with the simulation,
-starting from $(\qi{}, \pi{})$.
+If accepted, then we set $\thetai \leftarrow \thetaof{\qu{t'}}$. Whether the
+sample is accepted or rejected, we still continue on with the simulation
+by setting $(\qz{}, \pz{}) \leftarrow (\qu{t'}, \pu{t'})$ in \cref{eq:qt,eq:pt}.
 
 \subsection{Entropic dissipation} \label{ss:entropy}
 
-We modify \cref{eq:p_after_simple}
+Given a scalar $\epsilon \in (0,1]$, we modify \cref{eq:p_after_simple} slightly:
 \begin{equation}
-    \overleftarrow{\pi{}} \coloneqq \left(\pi{} - 2 \cdot \left<\pi{}, \mathbf{n}\right> \cdot \mathbf{n}\right). \label{eq:p_after}
+    \overleftarrow{\pu{t'}} \coloneqq \epsilon \cdot \left(\pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}\right). \label{eq:p_after}
 \end{equation}
+The value $\epsilon$ is known in the physics literature as the \emph{coefficient
+of restitution}, a ratio of the velocities before and after an inelastic
+collision. If $\epsilon = 1$, that is an elastic collision and we have
+\cref{eq:p_after_simple} again.
 
-% - "inelastic collisions"
-% - "coefficient of restitution" -> p_new = CoR * p_old
+After enough collisions, all the energy of the Hamiltonian will be concentrated
+in $U$ as the particle settles into a stable equilibrium of \surface{}. This
+means the particle has found at least a local minimum. In the nonlinear
+optimization view, the value \thetab{} at these moments are solutions 
+
+% : With \epsilon = 1, eventually all the "energy" of H will be in U. S is
+% finitely deep, and gravity is pulling the particle down. Collisions take away
+% from K only, total H goes down. This means as t->inf, p0 in eqs 4/5 -> 0.
 
 \subsubsection{Refreshing momentum} \label{ss:momentum}
 % - when the kinetic energy K has "puttered out" / "lost steam"
+
+Between refreshes, we yield some undefined number of samples, different each
+time and hard to predict.
 
 \subsection{Handling boundary constraints} \label{ss:constraints}
 % - motivation: some \theta_j could be a non-negative parameter in a graphical model, e.g. Beta
