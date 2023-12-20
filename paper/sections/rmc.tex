@@ -67,20 +67,50 @@ equations:
     &\frac{d\p{}}{dt} = -&&\frac{\partial H}{\partial \q{}} = -&&\frac{dU}{d\q{}} = -&&m\g{}. \label{eq:dpdt}
 \end{alignat}
 In order to simulate the particle trajectory, HMC employs Euler's "leapfrog"
-integration, which requires an acceptance step to account for the case when the
-Hamiltonian $H$ isn't conserved. In RMC's case, because \cref{eq:dqdt,eq:dpdt}
-don't involve what could be an arbitrarily complex \surface{}, we can easily
-solve for the time-parametrized closed forms:
+integration method, which requires an acceptance step to handle cases when the
+Hamiltonian $H$ diverges and thus isn't conserved. In RMC, because
+\cref{eq:dqdt,eq:dpdt} don't involve what could be an arbitrarily complex
+\surface{}, we can easily solve for the time-parametrized closed forms:
 \begin{align}
-    \qt{} &= \qz{} + \frac{\pz{}}{m}t - \frac{\g{}}{2}t^2 \label{eq:qt} \\
-    \pt{} &= \pz{} - m\g{}t. \label{eq:pt}
+    \qt{} &\coloneqq \qz{} + \frac{\pz{}}{m}t - \frac{\g{}}{2}t^2 \label{eq:qt} \\
+    \pt{} &\coloneqq \pz{} - m\g{}t. \label{eq:pt}
 \end{align}
 We use \cref{eq:qt,eq:pt} to find the next candidate sample \thetai{} by
 computing the earliest $t'$ for which $\CSof{\qof{t'}} = 0$. This search is done
 using a two-step process that increases $t'$ in doubling increments until a
 collision, and then does a binary search within a time-bounded window to find
-the near-exact $t'$ representing the point of collision while still satisfying
-$\CSof{\qof{t'}} > 0$. [ALGORITHM TODO] outlines this in fuller detail.
+the near-exact $t'$ representing the imminent point of collision while still
+satisfying $\CSof{\qof{t'}} > 0$. \cref{alg:temporalsearch} outlines the
+procedure in fuller detail.
+
+\begin{algorithm}[tb]
+   \caption{Find earliest $t'$ with imminent collision on \CS{}}
+   \label{alg:temporalsearch}
+\begin{algorithmic}
+    \Procedure{TemporalSearch}{\CS, \qz{}, \pz{}, $g$, $m$, $\Delta$}
+        \State $(\ts{}, \te{}) \gets (0, \Delta)$
+    \Repeat \Comment{Double timestep in forward scan...}
+        \State $\ts{} \gets \te{}$
+        \State $\te{} \gets 2 \cdot \te{}$
+    \Until{$\CSof{\qof{\te{}}} \leq 0$} \Comment{...until a collision.}
+
+    \Repeat
+        \State $\tm{} = \frac{1}{2} \left(\ts{} + \te{} \right)$
+        \LComment {If temporal midpoint is a collision...}
+        \If{$\CSof{\qof{\tm{}}} \leq 0$}
+            \LComment{...move boundary endtime backward...}
+            \State $\te{} \gets \tm{}$
+        \Else
+        \LComment{...else move boundary starttime forward.}
+        \State $\ts{} \gets \tm{}$
+        \EndIf
+    \Until{$\te{} - \ts{} \leq \text{some small tolerance}$}
+
+    \LComment{Since \ts{} still satisfies \CS{}, return it.}
+    \State \Return \ts{}
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Sampling at collisions} \label{ss:sampling}
 
@@ -108,9 +138,9 @@ Our acceptance probability is thus
         \lVert \thetaof{\pu{t'}} \rVert \lVert \thetaof{\overleftarrow{\pu{t'}}} \rVert
     }\right).
 \end{equation}
-If accepted, then we set $\thetai \leftarrow \thetaof{\qu{t'}}$. Whether the
+If accepted, then we set $\thetai \gets \thetaof{\qu{t'}}$. Whether the
 sample is accepted or rejected, we still continue on with the simulation
-by setting $(\qz{}, \pz{}) \leftarrow (\qu{t'}, \pu{t'})$ in \cref{eq:qt,eq:pt}.
+by setting $(\qz{}, \pz{}) \gets (\qu{t'}, \pu{t'})$ in \cref{eq:qt,eq:pt}.
 
 \subsection{Entropic dissipation} \label{ss:entropy}
 
