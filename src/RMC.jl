@@ -7,10 +7,10 @@ H(q::Vector, p::Vector, m::Real, g::Real) = U(q, m, g) + K(p, m) # hamiltonian (
 
 speed(p::Vector, m::Real) = norm(p / m) # particle speed, agnostic of direction
 
-function leapfrog(q::Vector, p::Vector, m::Real, g::Real, eps::Real)
-    p[end] -= 0.5 * eps * m * g
-    q += eps * (p / m)
-    p[end] -= 0.5 * eps * m * g
+function leapfrog(q::Vector, p::Vector, m::Real, g::Real, Δ::Real)
+    p[end] -= 0.5 * Δ * m * g
+    q += Δ * (p / m)
+    p[end] -= 0.5 * Δ * m * g
     return q, p
 end
 
@@ -63,9 +63,9 @@ end
 struct HyperParameters
     g::Real
     m::Real
-    cor::Real
-    eta::Real
-    eps::Real
+    ϵ::Real
+    η::Real
+    Δ::Real
 end
 
 struct Result
@@ -96,8 +96,8 @@ function momentum(t::Real, parabola::Parabola, g::Real, m::Real)
 end
 
 # Interpolation
-function (parabola::Parabola)(g::Real, m::Real, eps::Real)
-    return [position(t, parabola, g, m) for t in 0:eps:parabola.t]
+function (parabola::Parabola)(g::Real, m::Real, Δ::Real)
+    return [position(t, parabola, g, m) for t in 0:Δ:parabola.t]
 end
 
 # much faster discover from reduced number of evaluations of S, avoids MH prob
@@ -109,11 +109,11 @@ function temporalsearch(
     parabola::Parabola,
     g::Real,
     m::Real,
-    eps::Real;
+    Δ::Real;
     tol::Real=1e-6
 )
     # double time elapsed until we find a position past the point of collision
-    t_start, t_end = 0, eps
+    t_start, t_end = 0, Δ
     q_end = position(t_end, parabola, g, m)
     while !iscollision(surface, q_end)
         t_start = t_end
@@ -169,9 +169,9 @@ function rmc(
     E::Function, d::Integer, n::Integer;
     g::Real=1.0,
     m::Real=1.0,
-    cor::Real=0.99,
-    eta::Real=1e-2,
-    eps::Real=1e-3,
+    ϵ::Real=0.99,
+    η::Real=1e-2,
+    Δ::Real=1e-3,
     θ_start::Union{Nothing,Vector}=nothing,
     constraints::Union{Nothing,Vector}=nothing,
     isobjective::Bool=false,
@@ -184,7 +184,7 @@ function rmc(
     evaluations = 0
 
     # TODO: enforce invariants and log warnings
-    hyperparams = HyperParameters(g, m, cor, eta, eps)
+    hyperparams = HyperParameters(g, m, ϵ, η, Δ)
 
     constraints = isnothing(constraints) ?
                   [] :
@@ -231,7 +231,7 @@ function rmc(
 
         # find the surface collision point. guaranteed to hit the surface, so
         # set `t` on the parabola
-        parabola.t = temporalsearch(surface, parabola, g, m, eps)
+        parabola.t = temporalsearch(surface, parabola, g, m, Δ)
         hyperplane = surface
 
         # bounded time search for any constraint collision that happens earlier
@@ -263,13 +263,13 @@ function rmc(
             push!(rejected, θ_i)
         end
 
-        p *= cor # simulate entropic loss of kinetic energy
+        p *= ϵ # simulate entropic loss of kinetic energy
 
         # if the particle has "puttered out", then we say the trajectory has run
         # its course, and we refresh to begin a new one from which to take
         # samples. whether the sample was accepted or not from a sampling
         # perspective, the sample is a potential solution from the NL opt view
-        if K(p, m) < eta
+        if K(p, m) < η
             push!(solutions, θ_i)
             q, p = refresh_qp(θ_i, m, S)
         end

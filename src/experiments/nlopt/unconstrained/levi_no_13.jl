@@ -17,8 +17,8 @@ begin
 
     result = @time rmc(
         F, d, num_sol,
-        eta=1e-5,
-        eps=1, # this seems to help "teleport" through valleys
+        η=1e-5,
+        Δ=1, # this seems to help "teleport" through valleys
         isobjective=true,
         θ_start=sample_hypersphere_surface( # adversarial start point
             d,

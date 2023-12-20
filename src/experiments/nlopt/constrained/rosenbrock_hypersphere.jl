@@ -14,7 +14,7 @@ begin
 
     result = @time rmc(
         F, d, num_sol,
-        eta=1e-5,
+        η=1e-5,
         isobjective=true,
         constraints=[C],
         θ_start=zeros(d),

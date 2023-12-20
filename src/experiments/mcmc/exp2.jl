@@ -16,9 +16,9 @@ begin
 		P, d, 100,
 		g=1e-2,
 		m=1,
-		cor=0.99,
-		eta=1e-5,
-		eps=1e-1,
+		ϵ=0.99,
+		η=1e-5,
+		Δ=1e-1,
         # keep_all_bounces=true,
         count_trajectories=true,
 	)

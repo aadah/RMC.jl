@@ -20,9 +20,9 @@ begin
         logE, d, 2,
         g=1e-2,
         m=1,
-        cor=0.99,
-        eta=0.001,
-        eps=1e-2,
+        ϵ=0.99,
+        η=0.001,
+        Δ=1e-2,
 		islogenergy=true,
 		count_trajectories=true,
     )

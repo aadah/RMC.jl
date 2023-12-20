@@ -12,7 +12,7 @@ begin
 
     result = @time rmc(
         F, 2, num_sol,
-        eta=1e-5,
+        η=1e-5,
         isobjective=true,
         constraints=[C],
         θ_start=[-0.5, 0.5], # adversarial start point

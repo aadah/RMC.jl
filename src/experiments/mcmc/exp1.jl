@@ -12,26 +12,6 @@ begin
     S(θ) = -log(P(θ))
     from, to = μ - 15, μ + 15
 
-    # += Exponential(elevation)
-    # result = getsamples(
-    # 	P, d, 1000,
-    # 	g=4e-2,
-    # 	m=1,
-    # 	cor=0.99,
-    # 	eta=0.002,
-    # 	eps=1e-2,
-    # )
-
-    # += Exponential(m)
-    # result = getsamples(
-    # 	P, d, 10000,
-    # 	g=4e-2,
-    # 	m=1,
-    # 	cor=0.99,
-    # 	eta=0.002,
-    # 	eps=1e-2,
-    # )
-
     constraints = [
         θ -> θ[1] - (-20), # should always be > -20
         θ -> (-5) - θ[1], # should always be < -5
@@ -41,9 +21,9 @@ begin
         P, d, 10,
         g=5e-2,
         m=1,
-        cor=0.99,
-        eta=0.001,
-        eps=1e-3,
+        ϵ=0.99,
+        η=0.001,
+        Δ=1e-3,
         # keep_all_bounces=true,
         θ_start=[-8],
         constraints=constraints,

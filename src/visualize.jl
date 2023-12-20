@@ -56,7 +56,7 @@ function plot_trajectory(result::Result, S; from=-1, to=1, fig_size=(6.9, 4))
             parabola(
                 result.hyperparams.g,
                 result.hyperparams.m,
-                result.hyperparams.eps,
+                result.hyperparams.Δ,
             ))
     end
     T = hcat(all_positions...)
@@ -113,12 +113,12 @@ function plot_objective(
         #     ymin=[ymin], ymax=[ymax],),
         alpha=a,
         # z=f.(
-        #     collect(xmin:eps:xmax),
-        #     collect(ymin:eps:ymax)'
+        #     collect(xmin:Δ:xmax),
+        #     collect(ymin:Δ:ymax)'
         # ),
         # alpha=a.(
-        #     collect(xmin:eps:xmax),
-        #     collect(ymin:eps:ymax)'
+        #     collect(xmin:Δ:xmax),
+        #     collect(ymin:Δ:ymax)'
         # ),
         xmin=[xmin], xmax=[xmax],
         ymin=[ymin], ymax=[ymax],

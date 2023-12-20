@@ -14,9 +14,9 @@ begin
 		P, d, 10000,
 		g=5e-2,
 		m=1,
-		cor=0.99,
-		eta=0.005,
-		eps=1e-2,
+		ϵ=0.99,
+		η=0.005,
+		Δ=1e-2,
 	)
 	
 	log_summary(result)
