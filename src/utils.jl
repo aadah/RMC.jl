@@ -3,5 +3,6 @@ function sample_hypersphere_surface(d; radius=1, center=nothing)
     v = sqrt.(v)
     v *= radius
     v = isnothing(center) ? v : v + center
+    v .*= rand([1, -1], d)
     return v
 end
