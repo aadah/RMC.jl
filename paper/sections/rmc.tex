@@ -4,7 +4,7 @@ The intuition behind Ricochet Monte Carlo (RMC) is to treat our target
 distribution or objective as a sort of hilly terrain across which a point
 particle freely bounces along. The points where the particle collides with this
 surface are candidate samples to either be accepted and rejected. The particle
-will continue to bounce, until it settles in some "valley", at which time it is
+will continue to bounce, until it settles in some ``valley'', at which time it is
 picked up and tossed in a random direction to repeat the process.
 
 Let \target{} be some probability distribution to sample from, defined as
@@ -28,16 +28,16 @@ simply set $\surface{} \coloneqq \target{}$.
 For each value of \thetab{}, we associate an auxillary \emph{height} scalar
 \h{}. We define a $(d+1)$-length \emph{position} vector $\q{} \coloneqq
 [\thetab{}; \h{}]$. We also create an auxillary $(d+1)$-length \emph{position}
-vector \p{}. We define
+vector \p{}. We define functions
 \begin{align*}
-    \thetaof{\qi{}} &\coloneqq  \thetai{} \\
-    \hof{\qi{}}     &\coloneqq  \hi{}
+    \thetaof{\q{}} &\coloneqq  \thetab{} \\
+    \hof{\q{}}     &\coloneqq  \h{}
 \end{align*}
 to respectively refer to the specific sample and height components of any
-particular \qi{}. Similarly, we overload \thetaof{\pi{}} to be the vector of
-the first $d$ entries of \pi{}.
+particular \q{}. Similarly, we overload \thetaof{\p{}} to be the vector of the
+first $d$ entries of \p{}.
 
-We maintain an invariant where the particle is always "above" the surface \S,
+We maintain an invariant where the particle is always ``above'' the surface \S,
 i.e.
 \begin{equation}
     \label{eq:collision}
@@ -52,11 +52,11 @@ and \S{} fully describe the state of our system.
 
 To simulate the particle's trajectory across the surface, we start with its
 associated Hamiltonian equations. Given scalars $m > 0$ and $g > 0$, we define
-\begin{align*}
-    H(\q{}, \p{}) &\coloneqq U(\q{}) + K(\p{}) \\
-    U(\q{}) &\coloneqq m \cdot g \cdot \hof{\q{}} \\
-    K(\p{}) &\coloneqq \frac{\lVert \p{} \rVert^2}{2m}.
-\end{align*}
+\begin{align}
+    H(\q{}, \p{}) &\coloneqq U(\q{}) + K(\p{}) \label{eq:H} \\
+    U(\q{}) &\coloneqq m \cdot g \cdot \hof{\q{}} \label{eq:U} \\
+    K(\p{}) &\coloneqq \frac{\lVert \p{} \rVert^2}{2m} \label{eq:K} .
+\end{align}
 We respectively call $m$ and $g$ the \emph{mass} and \emph{gravity}, and both
 are hyperparameters of RMC. For convenience of notation, let $\g{} \coloneqq
 [\mathbf{0}_d; g]$ where $\mathbf{0}_d$ is a $d$-length zero vector. The
@@ -66,7 +66,7 @@ equations:
     &\frac{d\q{}}{dt} = &&\frac{\partial H}{\partial \p{}} = &&\frac{dK}{d\p{}} = &&\frac{\p{}}{m} \label{eq:dqdt} \\
     &\frac{d\p{}}{dt} = -&&\frac{\partial H}{\partial \q{}} = -&&\frac{dU}{d\q{}} = -&&m\g{}. \label{eq:dpdt}
 \end{alignat}
-In order to simulate the particle trajectory, HMC employs Euler's "leapfrog"
+In order to simulate the particle trajectory, HMC employs Euler's ``leapfrog''
 integration method, which requires an acceptance step to handle cases when the
 Hamiltonian $H$ diverges and thus isn't conserved. In RMC, because
 \cref{eq:dqdt,eq:dpdt} don't involve what could be an arbitrarily complex
@@ -76,12 +76,12 @@ Hamiltonian $H$ diverges and thus isn't conserved. In RMC, because
     \pt{} &\coloneqq \pz{} - m\g{}t. \label{eq:pt}
 \end{align}
 We use \cref{eq:qt,eq:pt} to find the next candidate sample \thetai{} by
-computing the earliest $t'$ for which $\CSof{\qof{t'}} = 0$. This search is done
-using a two-step process that increases $t'$ in doubling increments until a
-collision, and then does a binary search within a time-bounded window to find
-the near-exact $t'$ representing the imminent point of collision while still
-satisfying $\CSof{\qof{t'}} > 0$. \cref{alg:temporalsearch} outlines the
-procedure in fuller detail.
+computing the earliest $t'$ when the particle collides with the \S{}. This
+search is done using a two-step process that increases $t'$ in doubling
+increments until a collision, and then does a binary search within a
+time-bounded window to find the near-exact $t'$ representing the imminent point
+of collision while still satisfying $\CSof{\qof{t'}} > 0$.
+\cref{alg:temporalsearch} outlines the procedure in fuller detail.
 
 \begin{algorithm}[tb]
    \caption{Find earliest $t'$ with imminent collision on \CS{}}
@@ -107,10 +107,12 @@ procedure in fuller detail.
     \Until{$\te{} - \ts{} \leq \text{some small tolerance}$}
 
     \LComment{Since \ts{} still satisfies \CS{}, return it.}
-    \State \Return \ts{}
+    \State \Return \ts{} as $t'$
     \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+% TODO: Show how temporalsearch does O(log(n)) evaluations compared to HMC's O(n)
 
 \subsection{Sampling at collisions} \label{ss:sampling}
 
@@ -119,23 +121,25 @@ momentum $\pu{t'} \coloneqq \pof{t'}$. The acceptance probability of the
 candidate sample $\thetaof{\qu{t'}}$ is defined in terms of \emph{lateral
 momentum}: ignoring the height component, if the angle of the reflection is
 particularly sharp, we are more likely to reject it. The reasoning is that these
-"hard" bounces represent regions of low probability in \target{}. If we let
+``hard'' bounces represent regions of low probability in \target{}. If we let
 \begin{equation*}
     \mathbf{n} \coloneqq \frac{\nabla \CSof{\qu{t'}}}{\lVert \nabla \CSof{\qu{t'}} \rVert}
 \end{equation*}
 be the unit normal at \qu{t'}, we can define the momentum after reflecting off
 the surface as
 \begin{equation}
-    \overleftarrow{\pu{t'}} \coloneqq \pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}. \label{eq:p_after_simple}
+    \label{eq:p_after_simple}
+    \overleftarrow{\p}_{t'} \coloneqq \pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}.
 \end{equation}
 Our acceptance probability is thus
 \begin{equation}
-    \Pr\left(\textsc{accept} \mid \pu{t'}, \overleftarrow{\pu{t'}} \right) 
+    \label{eq:accept}
+    \Pr\left(\textsc{accept} \mid t'\right)
     \coloneqq \frac{1}{2}
     \left(1 + \frac{
-        \left<\thetaof{\pu{t'}},\thetaof{\overleftarrow{\pu{t'}}}\right>
+        \left<\thetaof{\pu{t'}},\thetaof{\overleftarrow{\p}_{t'}}\right>
     }{
-        \lVert \thetaof{\pu{t'}} \rVert \lVert \thetaof{\overleftarrow{\pu{t'}}} \rVert
+        \lVert \thetaof{\pu{t'}} \rVert \lVert \thetaof{\overleftarrow{\p}_{t'}} \rVert
     }\right).
 \end{equation}
 If accepted, then we set $\thetai \gets \thetaof{\qu{t'}}$. Whether the
@@ -146,24 +150,62 @@ by setting $(\qz{}, \pz{}) \gets (\qu{t'}, \pu{t'})$ in \cref{eq:qt,eq:pt}.
 
 Given a scalar $\epsilon \in (0,1]$, we modify \cref{eq:p_after_simple} slightly:
 \begin{equation}
-    \overleftarrow{\pu{t'}} \coloneqq \epsilon \cdot \left(\pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}\right). \label{eq:p_after}
+    \label{eq:p_after}
+    \overleftarrow{\p}_{t'} \coloneqq \epsilon \cdot \left(\pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}\right).
 \end{equation}
 The value $\epsilon$ is known in the physics literature as the \emph{coefficient
 of restitution}, a ratio of the velocities before and after an inelastic
-collision. If $\epsilon = 1$, that is an elastic collision and we have
-\cref{eq:p_after_simple} again.
+collision. If $\epsilon = 1$, it is an elastic collision and we have
+\cref{eq:p_after_simple} again. Repeated applications of \cref{eq:p_after} will
+gradually remove energy from the system until what remains is accounted for in
+the potential energy $U(\q{})$.
 
-After enough collisions, all the energy of the Hamiltonian will be concentrated
-in $U$ as the particle settles into a stable equilibrium of \surface{}. This
-means the particle has found at least a local minimum. In the nonlinear
-optimization view, the value \thetab{} at these moments are solutions 
+\begin{lemma}
+    \label{lm:equilibrium}
+    Let $t$ be the aggregate time elapsed across all bounces, with \qt{} and
+    \pt{} being the position and momentum at this moment. As $t \rightarrow
+    \infty$, \thetaof{\qt{}} will either be a local or global minimum of
+    \surface{}.
+\end{lemma}
+\begin{proof}
+    There is a point $\q{}^*$ such that $\Sof{\thetaof{\q{}^*}}$ is minimized.
+    It must be the case then that $\CSof{\q{}^*} = 0$ (else we would shift the
+    point downwards). Also, by \cref{eq:collision}, $\CSof{\qt{}} > 0$ always.
+    Let $\Delta U(\qt{}) \coloneqq U(\qt{}) - U(\q{}^*)$ be a strictly positive
+    quantity denoting the potential differential. We also observe per
+    \cref{eq:K,eq:p_after} that $K(\overleftarrow{\p}(t)) = \epsilon^2
+    K(\pt{})$. This implies
+    \begin{equation*}
+        \lim_{t \rightarrow \infty} K(\pt{}) = 0
+    \end{equation*}
+    and thus
+    \begin{align*}
+        \lim_{t \rightarrow \infty} H(\qt{}, \pt{}) &= U(\qt{}) \\
+        &= U(\q{}^*) + \Delta U(\qt{}).
+    \end{align*}
+    If $K(\pt{}) = 0$ in the limit then the particle has ceased motion, and is
+    resting on \S{} somewhere. If $\Delta U(\qt{}) = 0$, then $\qt{} = \q{}^*$
+    and we have settled at the global minimum. Otherwise, we have found a local
+    minimum.
+\end{proof}
 
-% : With \epsilon = 1, eventually all the "energy" of H will be in U. S is
-% finitely deep, and gravity is pulling the particle down. Collisions take away
-% from K only, total H goes down. This means as t->inf, p0 in eqs 4/5 -> 0.
+The result of \cref{lm:equilibrium} gives us a means of collecting values
+\thetab{} that identify potential solutions of \target{} from which we can
+select from at the end of the simulation. This is done by running the simulation
+of bounces until the kinetic energy of the particle drops below some small
+threshold $\eta > 0$. If that criterion is met, we collect a sample as part of a
+separate collection of solutions distinct from our MCMC samples. These solutions
+are therefore not subject to the acceptance step according to \cref{eq:accept}.
 
-\subsubsection{Refreshing momentum} \label{ss:momentum}
-% - when the kinetic energy K has "puttered out" / "lost steam"
+We must refresh momentum variable at the particle has ``puttered out''. We do
+this by raising the particle to some random height above \S{} and sampling the
+momentum randomly as well. For some \q{} and \p{} after a collision in which
+$K(\p{}) < \eta$, we refresh according to the following:
+\begin{align}
+    \Delta h &\sim \textsc{Rayleigh}(m) \\
+    \q{} &\gets [\thetaof{\q}; \Sof{\thetaof{\q}} + \Delta h] \\
+    \p{} &\sim \mathcal{N}(0,m \cdot \mathbf{I}_{d+1}).
+\end{align}
 
 Between refreshes, we yield some undefined number of samples, different each
 time and hard to predict.

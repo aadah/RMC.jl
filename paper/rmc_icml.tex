@@ -61,7 +61,7 @@
 \begin{document}
 
 \twocolumn[
-\icmltitle{Ricochet Monte Carlo}
+\icmltitle{Ricochet Monte Carlo: Dual Purpose \\ MCMC Sampling \& Nonlinear Optimization}
 
 \begin{icmlauthorlist}
     \icmlauthor{Abdi-Hakin Dirie}{n/a}
@@ -90,13 +90,13 @@
 We introduce a novel dual-purpose algorithm for MCMC sampling and constrained
 nonlinear optimization. The method simulates a particle bouncing across a
 surface whose shape is determined by the target distribution or objective
-function, using a notion of entropic loss that resembles simulated annealing
-without any acceptance step. Similarly, the simple closed-form parabolic
-trajectories means we can compute near-exact candidate samples. This enables a
-more efficient dynamical simulation, reducing total evaluations of the target.
-Our method easily extends to handle nonlinear constraints. We demonstrate the
-effectiveness of our method on several distributions and nonlinear test
-functions, as well as a concrete prediction task.
+function, using a notion of entropic dissipation that resembles simulated
+annealing without any acceptance step. Similarly, the simple closed-form
+parabolic trajectories means avoiding costly and potentially unstable numerical
+integrations to compute trajectories. This enables a more efficient simulation,
+reducing total evaluations of the target. Our method easily extends to handle
+nonlinear constraints. We demonstrate the effectiveness of our method on several
+distributions and nonlinear test functions.
 \end{abstract}
 
 \input{sections/intro}
