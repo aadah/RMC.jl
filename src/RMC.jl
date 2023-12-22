@@ -2,7 +2,7 @@
 h(q::Vector) = q[end] # height
 
 U(q::Vector, m::Real, g::Real) = m * g * h(q) # potential energy
-K(p::Vector, m::Real) = norm(p)^2 / (2 * m) # kinetic energy
+K(p::Vector, m::Real) = dot(p, p) / (2 * m) # kinetic energy
 H(q::Vector, p::Vector, m::Real, g::Real) = U(q, m, g) + K(p, m) # hamiltonian (total energy)
 
 speed(p::Vector, m::Real) = norm(p / m) # particle speed, agnostic of direction
