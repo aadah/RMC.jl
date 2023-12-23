@@ -201,11 +201,11 @@ We must refresh momentum variable at the particle has ``puttered out''. We do
 this by raising the particle to some random height above \S{} and sampling the
 momentum randomly as well. For some \q{} and \p{} after a collision in which
 $K(\p{}) < \eta$, we refresh according to the following:
-\begin{align}
+\begin{align*}
     \Delta h &\sim \textsc{Rayleigh}(m) \\
     \q{} &\gets [\thetaof{\q}; \Sof{\thetaof{\q}} + \Delta h] \\
-    \p{} &\sim \mathcal{N}(0,m \cdot \mathbf{I}_{d+1}).
-\end{align}
+    \p{} &\sim \mathcal{N}(0, m\mathbf{I}_{d+1}).
+\end{align*}
 
 Between refreshes, we yield some undefined number of samples, different each
 time and hard to predict.
