@@ -87,15 +87,15 @@ of collision while still satisfying $\CSof{\qof{t'}} > 0$.
    \caption{Find earliest $t'$ with imminent collision on \CS{}}
    \label{alg:temporalsearch}
 \begin{algorithmic}
-    \Procedure{TemporalSearch}{\CS, \qz{}, \pz{}, $g$, $m$, $\Delta$}
-        \State $(\ts{}, \te{}) \gets (0, \Delta)$
+    \Procedure{TemporalSearch}{\CS, \qz{}, \pz{}, $g$, $m$, $\Delta_0$}
+        \State $(\ts{}, \te{}) \gets (0, \Delta_0)$
     \Repeat \Comment{Double timestep in forward scan...}
         \State $\ts{} \gets \te{}$
         \State $\te{} \gets 2 \cdot \te{}$
     \Until{$\CSof{\qof{\te{}}} \leq 0$} \Comment{...until a collision.}
 
     \Repeat
-        \State $\tm{} = \frac{1}{2} \left(\ts{} + \te{} \right)$
+        \State $\tm{} \gets \frac{1}{2} \left(\ts{} + \te{} \right)$
         \LComment {If temporal midpoint is a collision...}
         \If{$\CSof{\qof{\tm{}}} \leq 0$}
             \LComment{...move boundary endtime backward...}
@@ -153,9 +153,9 @@ Given a scalar $\epsilon \in (0,1]$, we modify \cref{eq:p_after_simple} slightly
     \label{eq:p_after}
     \overleftarrow{\p}_{t'} \coloneqq \epsilon \cdot \left(\pu{t'} - 2 \cdot \left<\pu{t'}, \mathbf{n}\right> \cdot \mathbf{n}\right).
 \end{equation}
-The value $\epsilon$ is known in the physics literature as the \emph{coefficient
-of restitution}, a ratio of the velocities before and after an inelastic
-collision. If $\epsilon = 1$, it is an elastic collision and we have
+The hyperparameter $\epsilon$ is known in the physics literature as the
+\emph{coefficient of restitution}, a ratio of the velocities before and after an
+inelastic collision. If $\epsilon = 1$, it is an elastic collision and we have
 \cref{eq:p_after_simple} again. Repeated applications of \cref{eq:p_after} will
 gradually remove energy from the system until what remains is accounted for in
 the potential energy $U(\q{})$.
@@ -204,8 +204,16 @@ $K(\p{}) < \eta$, we refresh according to the following:
 \begin{align*}
     \Delta h &\sim \textsc{Rayleigh}(m) \\
     \q{} &\gets [\thetaof{\q}; \Sof{\thetaof{\q}} + \Delta h] \\
-    \p{} &\sim \mathcal{N}(0, m\mathbf{I}_{d+1}).
+    \p{} &\sim \mathcal{N}(0, m\mathbf{I}_{d+1})
 \end{align*}
+where
+\begin{equation*}
+    \textsc{Rayleigh}(x \mid \sigma) \coloneqq \frac{x}{\sigma^2}\exp\left(\frac{-x^2}{2\sigma^2}\right)
+\end{equation*}
+is the Rayleigh distribution with scalar parameter $\sigma > 0$ and support $x
+\geq 0$. This refresh scheme is visualized as raising the particle to some
+random height above where it settled and tossing it in a random direction. The
+raised height and strength of the toss is proportional to the mass $m$.
 
 Between refreshes, we yield some undefined number of samples, different each
 time and hard to predict.
