@@ -290,18 +290,5 @@ function rmc(
         evaluations
     )
 
-    log_summary(result)
-
     return result
-end
-
-function log_summary(result::Result)
-    num_evaluations = result.evaluations
-    mean_sample = string(mean(result.accepted))
-    num_accepted = length(result.accepted)
-    num_rejected = length(result.rejected)
-    num_refreshes = length(result.solutions)
-    mean_samples_per_trajectory = num_accepted / num_refreshes
-    reject_rate = "$(round(100 * (num_rejected / (num_accepted+num_rejected)), digits=2))%"
-    @info "RMC summary" num_evaluations mean_sample num_accepted num_rejected mean_samples_per_trajectory reject_rate num_refreshes
 end
