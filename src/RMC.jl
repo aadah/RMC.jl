@@ -95,6 +95,9 @@ function momentum(t::Real, parabola::Parabola, g::Real, m::Real)
     return pt
 end
 
+position(parabola::Parabola, g::Real, m::Real) = position(parabola.t, parabola, g, m)
+momentum(parabola::Parabola, g::Real, m::Real) = momentum(parabola.t, parabola, g, m)
+
 # Interpolation
 function (parabola::Parabola)(g::Real, m::Real, Δ::Real)
     return [position(t, parabola, g, m) for t in 0:Δ:parabola.t]
@@ -234,23 +237,26 @@ function rmc(
         parabola.t = temporalsearch(surface, parabola, g, m, Δ)
         hyperplane = surface
 
-        # bounded time search for any constraint collision that happens earlier
-        # TODO: confirm that at end of for loop, all constraints are met
-        #       pass all constraints, any(iscollision)?
-        for constraint in constraints
-            t_c = temporalsearch(constraint, parabola, g, m)
-            if t_c < parabola.t
-                parabola.t = t_c
-                hyperplane = constraint # so that reflect will be off constraint
+        # TODO: could this end with the original surface constraint being
+        # violated? maybe use constraints2 = [surface, constraints...]?
+        violated = findall(C -> iscollision(C, position(parabola, g, m)) < 0, constraints)
+        while !isempty(violated)
+            for constraint in constraints[violated]
+                t_c = temporalsearch(constraint, parabola, g, m)
+                if t_c < parabola.t
+                    parabola.t = t_c
+                    hyperplane = constraint # so that reflect will be off constraint
+                end
             end
+            violated = findall(C -> iscollision(C, position(parabola, g, m)) < 0, constraints)
         end
 
         if save_trajectory
             push!(trajectory, parabola)
         end
 
-        q = position(parabola.t, parabola, g, m)
-        p = momentum(parabola.t, parabola, g, m)
+        q = position(parabola, g, m)
+        p = momentum(parabola, g, m)
 
         θ_i = θ(q) # our candidate sample
 

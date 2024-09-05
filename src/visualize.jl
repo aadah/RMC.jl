@@ -1,8 +1,10 @@
+const THEME = :light
+
 function plot_surface_2d(S; origin=(-1, -1), dx=2, dy=2, fig_size=(6.9, 4))
     # w, h = fig_size
     # set_default_plot_size(w * inch, h * inch)
 
-    Gadfly.with_theme(:dark) do
+    Gadfly.with_theme(THEME) do
         return plot(
             z=(x, y) -> S([x, y]),
             xmin=[origin[1]], xmax=[origin[1] + dx],
@@ -17,7 +19,7 @@ function plot_samples_1d(result::Result, S; from=-1, to=1, fig_size=(6.9, 4))
     # set_default_plot_size(w * inch, h * inch)
 
     samples = [samp[1] for samp in result.accepted]
-    Gadfly.with_theme(:dark) do
+    Gadfly.with_theme(THEME) do
         p = plot(θ -> S([θ]), from, to, color=[colorant"gold"])
         push!(p, layer(
             x=samples,
@@ -34,7 +36,7 @@ function plot_samples_1d_v2(result::Result; dim=1, transform=identity, fig_size=
     # set_default_plot_size(w * inch, h * inch)
 
     samples = [transform(samp[dim]) for samp in result.accepted]
-    Gadfly.with_theme(:dark) do
+    Gadfly.with_theme(THEME) do
         p = plot(
             x=samples,
             Geom.density,
@@ -60,7 +62,7 @@ function plot_trajectory(result::Result, S; from=-1, to=1, fig_size=(6.9, 4))
             ))
     end
     T = hcat(all_positions...)
-    Gadfly.with_theme(:dark) do
+    Gadfly.with_theme(THEME) do
         p = plot(θ -> S([θ]), from, to, color=[colorant"gold"])
         push!(p, layer(
             x=T[1, :], y=T[2, :],

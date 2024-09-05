@@ -2,7 +2,7 @@
 
 begin
     Random.seed!(44)
-    set_default_plot_size(10 * inch, 8 * inch)
+    set_default_plot_size(5 * inch, 8 * inch)
 
     d = 1
     μ = -10
@@ -10,7 +10,8 @@ begin
     dist = MvNormal(fill(μ, d), I(d) * σ)
     P(θ) = pdf(dist, θ)
     S(θ) = -log(P(θ))
-    from, to = μ - 15, μ + 15
+    width = 10
+    from, to = μ - width, μ + width
 
     constraints = [
         θ -> θ[1] - (-20), # should always be > -20
@@ -19,16 +20,14 @@ begin
 
     result = @time rmc(
         P, d, 10,
-        g=5e-2,
-        m=1,
-        ϵ=0.99,
+        g=1e-2,
+        m=1e-1,
+        ϵ=1,
         η=0.001,
-        Δ=1e-3,
-        # keep_all_bounces=true,
-        θ_start=[-8],
-        constraints=constraints,
+        θ_start=[μ - width + 1],
+        # constraints=constraints,
         save_trajectory=true,
-        # count_by_samples=true,
+        count_by_samples=true,
     )
 
 	log_summary(result)
