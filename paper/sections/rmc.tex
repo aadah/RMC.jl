@@ -7,7 +7,7 @@ surface are candidate samples to either be accepted and rejected. The particle
 will continue to bounce, until it settles in some ``valley'', at which time it is
 picked up and tossed in a random direction to repeat the process.
 
-Let \target{} be some probability distribution to sample from, defined as
+Let \target{} be some probability distribution, defined as
 \begin{equation*}
     \target{} \coloneqq \frac{\energy{}}{Z}
 \end{equation*}
@@ -114,6 +114,20 @@ of collision while still satisfying $\CSof{\qof{t'}} > 0$.
 
 % TODO: Show how temporalsearch does O(log(n)) evaluations compared to HMC's O(n)
 
+\begin{figure}[ht]
+    \vskip 0.2in
+    \begin{center}
+    \centerline{\includesvg[width=\columnwidth]{plots/test.svg}}
+    \caption{Historical locations and number of accepted papers for International
+    Machine Learning Conferences (ICML 1993 -- ICML 2008) and International
+    Workshops on Machine Learning (ML 1988 -- ML 1992). At the time this figure was
+    produced, the number of accepted papers for ICML 2008 was unknown and instead
+    estimated.}
+    \label{icml-historical}
+    \end{center}
+    \vskip -0.2in
+\end{figure}
+
 \subsection{Sampling at collisions} \label{ss:sampling}
 
 Once $t'$ is had, we compute the position $\qu{t'} \coloneqq \qof{t'}$ and
@@ -168,11 +182,12 @@ the potential energy $U(\q{})$.
     \surface{}.
 \end{lemma}
 \begin{proof}
-    There is a point $\q{}^*$ such that $\Sof{\thetaof{\q{}^*}}$ is minimized.
-    It must be the case then that $\CSof{\q{}^*} = 0$ (else we would shift the
-    point downwards). Also, by \cref{eq:collision}, $\CSof{\qt{}} > 0$ always.
-    Let $\Delta U(\qt{}) \coloneqq U(\qt{}) - U(\q{}^*)$ be a strictly positive
-    quantity denoting the potential differential. We also observe per
+    There is a point $\q{}^*$ such that $\hof{\q{}^*} = \Sof{\thetaof{\q{}^*}}$
+    is the global minimum of \surface. It must be the case then that
+    $\CSof{\q{}^*} = 0$. In general, by \cref{eq:collision}, $\CSof{\qt{}} > 0$
+    for all other points in the course of the dynamics simulation. Let $\Delta
+    U(\qt{}) \coloneqq U(\qt{}) - U(\q{}^*)$ be a strictly positive quantity
+    denoting the potential differential. We also observe per
     \cref{eq:K,eq:p_after} that $K(\overleftarrow{\p}(t)) = \epsilon^2
     K(\pt{})$. This implies
     \begin{equation*}
