@@ -1,8 +1,4 @@
 begin
-    # Random.seed!(42)
-
-    num_sol = 10
-
     d = 10
     F(θ) = sum(
         idx -> 100 * (θ[idx+1] - θ[idx]^2)^2 + (1 - θ[idx])^2,
@@ -12,18 +8,13 @@ begin
     # constrained to a hypersphere of radius √d
     C(θ) = d - sum(idx -> θ[idx]^2, 1:d)
 
-    result = @time rmc(
-        F, d, num_sol,
-        η=1e-5,
-        isobjective=true,
-        constraints=[C],
+    solution, hyperparams, min_val = nlopt_grid_search(
+        F, d,
         θ_start=zeros(d),
+        constraints=[C],
+        seed=42,
     )
 
-    log_summary(result)
-
-    solution = argmin(F, result.solutions)
-
     # solution should be ~= 0 @ ones(d)
-    @info "solution" repr(solution) F(solution) C(solution)
+    @info "result" repr(solution.answer) solution.evaluations min_val hyperparams
 end

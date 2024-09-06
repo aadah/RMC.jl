@@ -1,8 +1,4 @@
 begin
-    # Random.seed!(42)
-
-    num_sol = 10
-
     F(θ) = 100 * (θ[2] - θ[1]^2)^2 + (1 - θ[1])^2
 
     # constrained to a cubic and a line
@@ -13,18 +9,13 @@ begin
             θ[1] -
             θ[2]
 
-    result = @time rmc(
-        F, 2, num_sol,
-        η=1e-5,
-        isobjective=true,
-        constraints=[C1, C2],
+    solution, hyperparams, min_val = nlopt_grid_search(
+        F, 2,
         θ_start=zeros(2),
+        constraints=[C1, C2],
+        seed=42,
     )
 
-    log_summary(result)
-
-    solution = argmin(F, result.solutions)
-
     # solution should be ~= 0 @ [1, 1]
-    @info "solution" repr(solution) F(solution) C1(solution) C2(solution)
+    @info "result" repr(solution.answer) solution.evaluations min_val hyperparams
 end

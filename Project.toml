@@ -1,4 +1,5 @@
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
+IterTools = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"

@@ -4,3 +4,4 @@ using Random
 using Distributions
 using Zygote
 using Gadfly
+using IterTools

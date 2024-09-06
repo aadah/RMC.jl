@@ -1,8 +1,4 @@
 begin
-    # Random.seed!(42)
-
-    num_sol = 10
-
     F(θ) = -cos((θ[1] - 0.1) * θ[2])^2 -
            θ[1] * sin(3 * θ[1] + θ[2])
 
@@ -18,19 +14,13 @@ begin
                θ[2]^2
     end
 
-    result = @time rmc(
-        F, 2, num_sol,
-        η=1e-5,
-        isobjective=true,
-        constraints=[C],
+    solution, hyperparams, min_val = nlopt_grid_search(
+        F, 2,
         θ_start=[-1, -1.5], # adversarial start point
-        save_trajectory=true,
+        constraints=[C],
+        seed=42,
     )
 
-    log_summary(result)
-
-    solution = argmin(F, result.solutions)
-
     # solution should be ~= -2.023 @ [2.005, 1.194]
-    @info "solution" repr(solution) F(solution) C(solution)
+    @info "result" repr(solution.answer) solution.evaluations min_val hyperparams
 end

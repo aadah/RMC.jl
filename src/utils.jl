@@ -18,4 +18,13 @@ function log_summary(result::Result)
     @info "RMC summary" num_evaluations mean_sample num_accepted num_rejected mean_samples_per_trajectory reject_rate num_solutions
 end
 
-logspace(start, stop, step=1) = exp10.(start:step:stop)
+function logspace(start::Real, stop::Real, n::Integer=2)
+    if n == 2
+        return [start, stop]
+    end
+    s = log10(start)
+    e = log10(stop)
+    step = (e - s) / (n - 1)
+    mid = exp10.((s+step):step:(e+1e-10))
+    return [start, mid[1:end-1]..., stop]
+end
