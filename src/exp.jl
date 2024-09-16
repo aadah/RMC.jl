@@ -17,7 +17,7 @@ function nlopt_grid_search(
     Random.seed!(seed)
 
     best = nothing
-    
+
     for (i, (g, m, ϵ, η, Δ)) in enumerate(all_hyperparams())
         result = nothing
         try
@@ -49,7 +49,9 @@ function nlopt_grid_search(
         end
     end
 
-    @assert all(C -> !iscollision(C, best[1].answer), constraints) "constraints broken (bug?)"
+    if !isnothing(constraints)
+        @assert all(C -> !iscollision(C, best[1].answer), constraints) "constraints broken (bug?)"
+    end
 
     return best
 end
