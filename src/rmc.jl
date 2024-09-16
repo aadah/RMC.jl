@@ -127,7 +127,20 @@ function temporalsearch(
         t_start = t_end
         t_end *= 2
         q_end = position(t_end, parabola, g, m)
+        # BUG: this catch was done to prevent an infinite loop in the second
+        # `while` block. this occurred when doing experiments with the
+        # Simionescu function-- a certain run hit a pathological case where `q`
+        # went far beyond the typical bounds into territory (i.e. as x, y -> -∞,
+        # ∞) where a -Inf floating point overflow occurred before it could
+        # collide with the surface. the fix probably is to refactor so we do one
+        # `temporalsearch` call with all constraints (including the surface
+        # one), since the first one just looks for the surface collision sans
+        # constraints, which can be anywhere
+        all(!isinf, q_end) || throw("numerical overflow")
     end
+
+    @assert !iscollision(surface, position(t_start, parabola, g, m)) "start"
+    @assert iscollision(surface, position(t_end, parabola, g, m)) "end"
 
     # binary search in time to find the true point of collision
     while t_end - t_start > tol
