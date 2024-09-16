@@ -1,3 +1,5 @@
+import RMC
+
 begin
     F(θ) = 4 * θ[1]^2 -
            2.1 * θ[1]^4 +
@@ -11,7 +13,7 @@ begin
            sin(4π * θ[1]) -
            2 * sin(2π * θ[2])^2
 
-    solution, hyperparams, min_val = nlopt_grid_search(
+    solution, hyperparams, min_val = RMC.nlopt_grid_search(
         F, 2,
         θ_start=[-0.9, 0.9], # adversarial start point
         constraints=[C],

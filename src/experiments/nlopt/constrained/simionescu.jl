@@ -1,3 +1,5 @@
+import RMC
+
 begin
     F(θ) = 0.1 * θ[1] * θ[2]
 
@@ -6,9 +8,9 @@ begin
            θ[1]^2 -
            θ[2]^2
 
-    solution, hyperparams, min_val = nlopt_grid_search(
-        F, d,
-        θ_start=[-0.5, 0.5], # adversarial start point
+    solution, hyperparams, min_val = RMC.nlopt_grid_search(
+        F, 2,
+        θ_start=[-0.5, -0.5], # adversarial start point
         constraints=[C],
         seed=42,
     )

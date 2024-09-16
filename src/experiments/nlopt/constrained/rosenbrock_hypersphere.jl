@@ -1,3 +1,5 @@
+import RMC
+
 begin
     d = 10
     F(θ) = sum(
@@ -8,7 +10,7 @@ begin
     # constrained to a hypersphere of radius √d
     C(θ) = d - sum(idx -> θ[idx]^2, 1:d)
 
-    solution, hyperparams, min_val = nlopt_grid_search(
+    solution, hyperparams, min_val = RMC.nlopt_grid_search(
         F, d,
         θ_start=zeros(d),
         constraints=[C],

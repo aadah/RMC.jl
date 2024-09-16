@@ -18,9 +18,10 @@ function nlopt_grid_search(
 
     best = nothing
     
-    for (g, m, ϵ, η, Δ) in all_hyperparams()
+    for (i, (g, m, ϵ, η, Δ)) in enumerate(all_hyperparams())
         result = nothing
         try
+            print("$i\t")
             result = @time rmc(
                 E, d, num_solutions;
                 g=g, m=m, ϵ=ϵ, η=η, Δ=Δ,

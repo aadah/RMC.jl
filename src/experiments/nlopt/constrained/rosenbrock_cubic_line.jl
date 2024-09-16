@@ -1,3 +1,5 @@
+import RMC
+
 begin
     F(θ) = 100 * (θ[2] - θ[1]^2)^2 + (1 - θ[1])^2
 
@@ -9,7 +11,7 @@ begin
             θ[1] -
             θ[2]
 
-    solution, hyperparams, min_val = nlopt_grid_search(
+    solution, hyperparams, min_val = RMC.nlopt_grid_search(
         F, 2,
         θ_start=zeros(2),
         constraints=[C1, C2],

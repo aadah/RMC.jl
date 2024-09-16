@@ -1,3 +1,6 @@
+import RMC
+using LinearAlgebra: norm
+
 begin
     F(θ) = -cos((θ[1] - 0.1) * θ[2])^2 -
            θ[1] * sin(3 * θ[1] + θ[2])
@@ -14,7 +17,7 @@ begin
                θ[2]^2
     end
 
-    solution, hyperparams, min_val = nlopt_grid_search(
+    solution, hyperparams, min_val = RMC.nlopt_grid_search(
         F, 2,
         θ_start=[-1, -1.5], # adversarial start point
         constraints=[C],
