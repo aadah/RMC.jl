@@ -70,7 +70,7 @@ end
 
 struct Solution
     answer::Vector
-    evaluations::Integer # number of evaluations of the target function before finding solutions
+    evaluations::Integer # number of evaluations of the target function before finding solution
 end
 
 mutable struct Parabola
@@ -114,76 +114,49 @@ end
 # us in another "mountain"
 function temporalsearch(
     surface::Function,
+    constraints::Union{Nothing,Vector},
     parabola::Parabola,
     g::Real,
     m::Real,
     Δ::Real;
     tol::Real=1e-6
 )
+    if isnothing(constraints)
+        boundaries = [surface]
+    else
+        boundaries = [surface, constraints...]
+    end
+
     # double time elapsed until we find a position past the point of collision
     t_start, t_end = 0, Δ
     q_end = position(t_end, parabola, g, m)
-    while !iscollision(surface, q_end)
-        t_start = t_end
-        t_end *= 2
+    while isempty(findall(B -> iscollision(B, q_end), boundaries))
+        t_start, t_end = t_end, 2 * t_end
         q_end = position(t_end, parabola, g, m)
-        # BUG: this catch was done to prevent an infinite loop in the second
-        # `while` block. this occurred when doing experiments with the
-        # Simionescu function-- a certain run hit a pathological case where `q`
-        # went far beyond the typical bounds into territory (i.e. as x, y -> -∞,
-        # ∞) where a -Inf floating point overflow occurred before it could
-        # collide with the surface. the fix probably is to refactor so we do one
-        # `temporalsearch` call with all constraints (including the surface
-        # one), since the first one just looks for the surface collision sans
-        # constraints, which can be anywhere
-        all(!isinf, q_end) || throw("numerical overflow")
+        @assert all(!isinf, q_end) "numerical overflow"
     end
-
-    @assert !iscollision(surface, position(t_start, parabola, g, m)) "start"
-    @assert iscollision(surface, position(t_end, parabola, g, m)) "end"
 
     # binary search in time to find the true point of collision
     while t_end - t_start > tol
-        t_mid = (t_start + t_end) / 2
+        t_mid = t_start + (t_end - t_start) / 2 # NOTE: more stable than (a+b)/2
         q_mid = position(t_mid, parabola, g, m)
-        if iscollision(surface, q_mid)
+        if any(B -> iscollision(B, q_mid), boundaries)
             t_end = t_mid
         else
             t_start = t_mid
         end
     end
 
-    # take t_start (time right before collision) as the solution time
-    return t_start
-end
-
-function temporalsearch(
-    constraint::Constraint,
-    parabola::Parabola,
-    g::Real,
-    m::Real;
-    tol::Real=1e-6
-)
-    # quick check if constraint is actually being violated
-    t_start, t_end = 0, parabola.t
-    q_end = position(t_end, parabola, g, m)
-    if !iscollision(constraint, q_end)
-        return Inf
-    end
-
-    # binary search in time to find the true point of collision
-    while t_end - t_start > tol
-        t_mid = (t_start + t_end) / 2
-        q_mid = position(t_mid, parabola, g, m)
-        if iscollision(constraint, q_mid)
-            t_end = t_mid
-        else
-            t_start = t_mid
-        end
-    end
+    # NOTE: the assumption at this point is that the tolerance is small enough
+    # that there is only one boundary (surface or constraint) that is being
+    # violated. if there is actually more than one, it's like hitting a "corner"
+    # where the two or more boundaries meet. since the tolerance is so small, we
+    # practically don't care and arbitrarily pick the first one
+    idx = findfirst(B -> iscollision(B, position(t_end, parabola, g, m)), boundaries)
+    B = boundaries[idx]
 
     # take t_start (time right before collision) as the solution time
-    return t_start
+    return t_start, B
 end
 
 function rmc(
@@ -251,22 +224,9 @@ function rmc(
         # have yet to find the time it collides (with the surface or constraint)
         parabola = Parabola(q, p, missing)
 
-        # find the surface collision point. guaranteed to hit the surface, so
-        # set `t` on the parabola
-        parabola.t = temporalsearch(surface, parabola, g, m, Δ)
-        hyperplane = surface
-
-        violated = findall(C -> iscollision(C, position(parabola, g, m)), constraints)
-        while !isempty(violated)
-            for constraint in constraints[violated]
-                t_c = temporalsearch(constraint, parabola, g, m)
-                if t_c < parabola.t
-                    parabola.t = t_c
-                    hyperplane = constraint # so that reflect will be off constraint
-                end
-            end
-            violated = findall(C -> iscollision(C, position(parabola, g, m)), constraints)
-        end
+        # find the collision time and boundary, which could either be the
+        # surface or a constraint
+        parabola.t, hyperplane = temporalsearch(surface, constraints, parabola, g, m, Δ)
 
         if save_trajectory
             push!(trajectory, parabola)
