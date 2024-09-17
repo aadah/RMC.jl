@@ -1,13 +1,11 @@
 import RMC
-using LinearAlgebra: norm
 
 begin
     F(θ) = -cos((θ[1] - 0.1) * θ[2])^2 -
            θ[1] * sin(3 * θ[1] + θ[2])
 
-    atan2(θ) = θ[1] / (θ[2] + norm(θ, 2))
     function C(θ)
-        t = atan2(θ)
+        t = atan(θ[1], θ[2])
         return (2 * cos(t) -
                 0.5 * cos(2 * t) -
                 0.25 * cos(3 * t) -
