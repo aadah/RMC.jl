@@ -3,7 +3,7 @@
 import RMC
 
 begin
-    d = 10
+    d = 2
 
     F(θ) = 1 +
            10 * d +
@@ -16,7 +16,7 @@ begin
         F, d,
         θ_start=RMC.sample_hypersphere_surface( # adversarial start point
             d,
-            radius=10,
+            radius=5,
             center=zeros(d)
         ),
         seed=42,
