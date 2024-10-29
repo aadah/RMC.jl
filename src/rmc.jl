@@ -60,6 +60,13 @@ function (constraint::Constraint)(q)
     return constraint.C(θ(q))
 end
 
+function reflect(p::Vector, _::Constraint, _::Vector)
+    # constraint reflection just negates the lateral momentum
+    p *= -1
+    p[end] *= -1
+    return p
+end
+
 struct HyperParameters
     g::Real
     m::Real
