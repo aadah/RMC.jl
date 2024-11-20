@@ -25,10 +25,10 @@ simply set $\surface{} \coloneqq \target{}$.
 
 \subsection{Auxillary variables} \label{ss:auxillary}
 
-For each value of \thetab{}, we associate an auxillary \emph{height} scalar
-\h{}. We define a $(d+1)$-length \emph{position} vector $\q{} \coloneqq
-[\thetab{}; \h{}]$. We also create an auxillary $(d+1)$-length \emph{position}
-vector \p{}. We define functions
+For each value of \thetab{}, we associate an auxillary \emph{height} scalar $\h{}
+\in \mathbb{R}$. We define a $(d+1)$-length \emph{position} vector $\q{}
+\coloneqq [\thetab{}; \h{}]$. We also create an auxillary $(d+1)$-length
+\emph{position} vector \p{}. We define functions
 \begin{align*}
     \thetaof{\q{}} &\coloneqq  \thetab{} \\
     \hof{\q{}}     &\coloneqq  \h{}
@@ -114,19 +114,19 @@ of collision while still satisfying $\CSof{\qof{t'}} > 0$.
 
 % TODO: Show how temporalsearch does O(log(n)) evaluations compared to HMC's O(n)
 
-\begin{figure}[ht]
-    \vskip 0.2in
-    \begin{center}
-    \centerline{\includesvg[width=\columnwidth]{plots/test.svg}}
-    \caption{Historical locations and number of accepted papers for International
-    Machine Learning Conferences (ICML 1993 -- ICML 2008) and International
-    Workshops on Machine Learning (ML 1988 -- ML 1992). At the time this figure was
-    produced, the number of accepted papers for ICML 2008 was unknown and instead
-    estimated.}
-    \label{icml-historical}
-    \end{center}
-    \vskip -0.2in
-\end{figure}
+% \begin{figure}[ht]
+%     \vskip 0.2in
+%     \begin{center}
+%     \centerline{\includesvg[width=\columnwidth]{plots/test.svg}}
+%     \caption{Historical locations and number of accepted papers for International
+%     Machine Learning Conferences (ICML 1993 -- ICML 2008) and International
+%     Workshops on Machine Learning (ML 1988 -- ML 1992). At the time this figure was
+%     produced, the number of accepted papers for ICML 2008 was unknown and instead
+%     estimated.}
+%     \label{icml-historical}
+%     \end{center}
+%     \vskip -0.2in
+% \end{figure}
 
 \subsection{Sampling at collisions} \label{ss:sampling}
 
@@ -212,7 +212,7 @@ threshold $\eta > 0$. If that criterion is met, we collect a sample as part of a
 separate collection of solutions distinct from our MCMC samples. These solutions
 are therefore not subject to the acceptance step according to \cref{eq:accept}.
 
-We must refresh momentum variable at the particle has ``puttered out''. We do
+We must refresh momentum variable as the particle has ``puttered out''. We do
 this by raising the particle to some random height above \S{} and sampling the
 momentum randomly as well. For some \q{} and \p{} after a collision in which
 $K(\p{}) < \eta$, we refresh according to the following:
@@ -240,6 +240,8 @@ time and hard to predict.
 % - normal simply zero vector with 1 at location j
 % - reflection is just multiple p_j by -1
 % - we *don't* sample if collision is on boundary wall, and not S
+
+Many problems of interests place arbitrary constraints on the search space
 
 \subsection{Initialization} \label{ss:initialization}
 
