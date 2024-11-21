@@ -160,12 +160,14 @@ function temporalsearch(
 end
 
 function rmc(
-    E::Function, d::Integer, n::Integer;
-    g::Real=1.0,
-    m::Real=1.0,
-    ϵ::Real=0.99,
-    η::Real=1e-2,
-    Δ::Real=1e-3,
+    E::Function,  # distribution or function of interest
+    d::Integer,   # dimension of parameter space
+    n::Integer;   # number of desired solutions (or samples)
+    g::Real=1.0,  # gravity
+    m::Real=1.0,  # mass
+    ϵ::Real=0.99, # coefficient of restitution
+    η::Real=1e-2, # refresh threshold
+    Δ::Real=1e-3, # initial step size for temporal search
     θ_start::Union{Nothing,Vector}=nothing,
     constraints::Union{Nothing,Vector}=nothing,
     isobjective::Bool=false,
@@ -178,15 +180,15 @@ function rmc(
     trajectory, solutions = [], []
     evaluations = 0
 
-    # TODO: enforce invariants and log warnings
+    # TODO: Enforce invariants and log warnings.
     hyperparams = HyperParameters(g, m, ϵ, η, Δ)
 
     s = if isobjective
-        # isobjective == true if E is simply a function to minimize
+        # `isobjective == true` if E is simply a function to minimize.
         E
     else
         if islogenergy
-            # islogenergy == true if E is already the log, so just negate
+            # `islogenergy == true` if E is already the log, so just negate.
             θ -> θ |> E |> -
         else
             # default: S(θ) = -log(E(θ))
@@ -194,64 +196,67 @@ function rmc(
         end
     end
 
-    # wrap the call of our joint / objective / etc. so that we count every time
-    # it is evaluated
+    # Wrap the call of our joint/objective/etc. so that we count every time
+    # it is evaluated.
     function S(θ)
         evaluations += 1
         return s(θ)
     end
 
-    # this ordering of the difference is such that a collision is when it is
-    # zero or negative, i.e. a violation of our "surface" constraint
+    # Define our surface constraint. This ordering of the difference is such
+    # that a collision is when it is zero or negative.
     surface(q) = h(q) - S(θ(q))
 
+    # Prepare our boundary constraints (if any).
     constraints = isnothing(constraints) ? [] : map(Constraint, constraints)
 
-    # initialization
+    # Initialization.
     θ_start = isnothing(θ_start) ? randn(d) : θ_start
     q, p = refresh_qp(θ_start, m, S)
 
     while (count_by_samples ? length(accepted) : length(solutions)) < n
         @assert evaluations <= max_evaluations "exceeded allowed number of function evaluations ($max_evaluations)"
 
-        # catch numerical issues, end early
+        # Catch numerical issues and end early.
         if any(isnan, q) || any(isnan, p) || any(isinf, q) || any(isinf, p)
             @warn "early stop due to numerical instability" q p
             break
         end
 
-        # create hyperparabolic segment with q and p at t=0. `missing` means we
-        # have yet to find the time it collides (with the surface or constraint)
+        # Create hyperparabolic segment with q and p at t=0. `missing` means we
+        # have yet to find the time it collides with the surface or constraint.
         parabola = Parabola(q, p, missing)
 
-        # find the collision time and boundary, which could either be the
-        # surface or a constraint
+        # Find the collision time and boundary, which could either be the
+        # surface or a constraint.
         parabola.t, hyperplane = temporalsearch(surface, constraints, parabola, g, m, Δ)
 
         if save_trajectory
             push!(trajectory, parabola)
         end
 
+        # Get the position and momentum at time of collision.
         q = position(parabola, g, m)
         p = momentum(parabola, g, m)
 
-        θ_i = θ(q) # our candidate sample
+        θ_i = θ(q) # Our candidate sample.
 
         p_before = p
-        p = reflect(p_before, hyperplane, q) # bounce off of surface or constraint
+        p = reflect(p_before, hyperplane, q) # Bounce off of surface or constraint.
 
+        # Flip a biased coin to determine whether to accept the candidate.
         if accept_bounce(p_before, p)
             push!(accepted, θ_i)
         else
             push!(rejected, θ_i)
         end
 
-        p *= ϵ # simulate entropic loss of kinetic energy
+        p *= ϵ # Simulate entropic loss of kinetic energy.
 
-        # if the particle has "puttered out", then we say the trajectory has run
+        # If the particle has "puttered out", then we say the trajectory has run
         # its course, and we refresh to begin a new one from which to take
-        # samples. whether the sample was accepted or not from a sampling
-        # perspective, the sample is a potential solution from the NL opt view
+        # samples. Whether the sample was accepted or not from a sampling
+        # perspective, the sample is a potential solution from the NL opt view.
         if K(p, m) < η
             push!(solutions, Solution(θ_i, evaluations))
             q, p = refresh_qp(θ_i, m, S)
@@ -259,12 +264,12 @@ function rmc(
     end
 
     result = Result(
-        hyperparams,
-        accepted,
-        rejected,
-        trajectory,
-        solutions,
-        evaluations
+        hyperparams, # Hyperparameters for the simulation.
+        accepted,    # The accepted samples.
+        rejected,    # The rejected samples.
+        trajectory,  # All the hyperparabolic trajectories followed.
+        solutions,   # Possible solution points that minimized our target.
+        evaluations  # Total number of evaluations of the target function.
     )
 
     return result
