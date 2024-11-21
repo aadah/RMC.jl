@@ -5,15 +5,6 @@ U(q::Vector, m::Real, g::Real) = m * g * h(q) # potential energy
 K(p::Vector, m::Real) = dot(p, p) / (2 * m) # kinetic energy
 H(q::Vector, p::Vector, m::Real, g::Real) = U(q, m, g) + K(p, m) # hamiltonian (total energy)
 
-speed(p::Vector, m::Real) = norm(p / m) # particle speed, agnostic of direction
-
-function leapfrog(q::Vector, p::Vector, m::Real, g::Real, Δ::Real)
-    p[end] -= 0.5 * Δ * m * g
-    q += Δ * (p / m)
-    p[end] -= 0.5 * Δ * m * g
-    return q, p
-end
-
 function iscollision(hyperplane::Function, q::Vector)
     return hyperplane(q) <= 0
 end
