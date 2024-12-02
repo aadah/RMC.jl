@@ -66,6 +66,7 @@ function mcmc_grid_search(
     num_samples::Integer=1000,
     num_chains::Integer=5, # recommendation: at least 4
     islogenergy::Bool=false,
+    constraints::Union{Nothing,Vector}=nothing,
     random_start_fn::Function=randn,
     seed::Integer=42,
     target::Union{Nothing,UnivariateDistribution}=nothing,
@@ -90,6 +91,7 @@ function mcmc_grid_search(
                     islogenergy=islogenergy,
                     count_by_samples=true,
                     θ_start=random_start_fn(d),
+                    constraints=constraints,
                 )
                 samples = result.accepted
                 push!(chains, collect(hcat(samples...)'))
