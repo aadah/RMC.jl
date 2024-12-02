@@ -235,9 +235,15 @@ function rmc(
         p_before = p
         p = reflect(p_before, hyperplane, q) # Bounce off of surface or constraint.
 
+        # Catch special case where the bounce is off a constraint.
+        if hyperplane isa Constraint
+            # We don't remove energy from the system, nor consider this location
+            # as a possible solution, so we simple continue.
+            continue
         # Flip a biased coin to determine whether to accept the candidate.
-        if accept_bounce(p_before, p)
+        elseif accept_bounce(p_before, p)
             push!(accepted, θ_i)
+        # Track rejection if non-constraint bounce not accepted.
         else
             push!(rejected, θ_i)
         end
