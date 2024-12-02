@@ -4,4 +4,6 @@ using Random
 using Distributions
 using Zygote
 using Gadfly
+using DataFrames
+using CSV
 using IterTools
