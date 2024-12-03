@@ -4,6 +4,7 @@ Original Julia implementation of Ricochet Monte Carlo
 
 ## TODO
 
-- [ ] Code MCMC diagnostics for selecting sampler hyperparameters.
+- [x] Code MCMC diagnostics for selecting sampler hyperparameters.
+- [ ] Handle equality constraints.
 - [ ] Write usage documentation.
 - [ ] Publish package.
