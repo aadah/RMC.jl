@@ -30,6 +30,13 @@ function accept_bounce(p_before::Vector, p_after::Vector)
     return sim >= thresh
 end
 
+function restitution(ϵ::Real, p_before::Vector, p_after::Vector)
+    dots = dot(p_before, p_after)
+    norms = norm(p_before) * norm(p_after)
+    sim = dots / norms
+    return ((1 + sim) + ϵ * (1 - sim)) / 2
+end
+
 function refresh_qp(θ_i::Vector, m::Real, S::Function)
     d = length(θ_i)
 
@@ -240,15 +247,15 @@ function rmc(
             # We don't remove energy from the system, nor consider this location
             # as a possible solution, so we simple continue.
             continue
-        # Flip a biased coin to determine whether to accept the candidate.
+            # Flip a biased coin to determine whether to accept the candidate.
         elseif accept_bounce(p_before, p)
             push!(accepted, θ_i)
-        # Track rejection if non-constraint bounce not accepted.
+            # Track rejection if non-constraint bounce not accepted.
         else
             push!(rejected, θ_i)
         end
 
-        p *= ϵ # Simulate entropic loss of kinetic energy.
+        p *= restitution(ϵ, p_before, p) # Simulate entropic loss of kinetic energy.
 
         # If the particle has "puttered out", then we say the trajectory has run
         # its course, and we refresh to begin a new one from which to take
