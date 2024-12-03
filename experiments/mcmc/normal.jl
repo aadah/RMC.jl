@@ -12,7 +12,6 @@ begin
         E, d,
         islogenergy=true,
         target=dist,
-        random_start_fn=_ -> [rand(dist)],
         saveto="$(@__FILE__).csv"
     )
 
