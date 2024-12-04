@@ -1,7 +1,7 @@
 function all_hyperparams(mcmc::Bool=false)
     gs::Vector{Real} = logspace(0.1, 2, 5)
     ms::Vector{Real} = logspace(0.1, 2, 5)
-    ϵs::Vector{Real} = logspace(0.975, 0.999, 5)
+    ϵs::Vector{Real} = logspace(0.9, 0.999, 5)
     ηs::Vector{Real} = logspace(1e-3, 1e-1, 3)
     Δs::Vector{Real} = logspace(1e-4, 1e-2, 3)
     if mcmc
@@ -92,6 +92,7 @@ function mcmc_grid_search(
                     count_by_samples=true,
                     θ_start=random_start_fn(d),
                     constraints=constraints,
+                    max_evaluations=10000000,
                 )
                 samples = result.accepted
                 push!(chains, collect(hcat(samples...)'))
@@ -123,7 +124,7 @@ function mcmc_grid_search(
 
         push!(df, NamedTuple(row), cols=:union)
 
-        @info "Experiment $i" metric(row) elapsed_seconds = stats.time
+        @info "Experiment $i" metric(row) elapsed_seconds = stats.time pval = row[:pval_median]
 
         if isnothing(best)
             # initial case
