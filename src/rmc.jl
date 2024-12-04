@@ -145,15 +145,18 @@ function temporalsearch(
     return t_start, B
 end
 
+@enum Mode every angle lateral
+
 function rmc(
-    E::Function,  # distribution or function of interest
-    d::Integer,   # dimension of parameter space
-    n::Integer;   # number of desired solutions (or samples)
-    g::Real=1.0,  # gravity
-    m::Real=1.0,  # mass
-    ϵ::Real=0.99, # coefficient of restitution
-    η::Real=1e-2, # refresh threshold
-    Δ::Real=1e-3, # initial step size for temporal search
+    E::Function,      # distribution or function of interest
+    d::Integer,       # dimension of parameter space
+    n::Integer;       # number of desired solutions (or samples)
+    g::Real=1.0,      # gravity
+    m::Real=1.0,      # mass
+    ϵ::Real=0.99,     # coefficient of restitution
+    η::Real=1e-2,     # refresh threshold
+    Δ::Real=1e-3,     # initial step size for temporal search
+    mode::Mode=every, # criterion method for acceptance step
     θ_start::Union{Nothing,Vector}=nothing,
     constraints::Union{Nothing,Vector}=nothing,
     isobjective::Bool=false,
@@ -238,18 +241,20 @@ function rmc(
 
         sim = cossim(p_before, p) # Cosine similarity ∈ [-1,1].
 
-        # Catch special case where the bounce is off a constraint.
         if hyperplane isa Constraint
-            # We don't remove energy from the system, nor consider this location
-            # as a possible solution, so we simple continue.
+            # Catch special case where the bounce is off a constraint. We don't
+            # remove energy from the system, nor consider this location as a
+            # possible solution, so we simple continue.
             continue
-        # We only run the acceptance step once warmed.
-        elseif warmed
+        elseif warmed # We only run the acceptance step once warmed.
             # Flip a biased coin to determine whether to accept the candidate.
-            if accept_bounce(sim)
+            if mode == every ||
+               accept_bounce(mode == angle ?
+                             sim :
+                             cossim(θ(p_before), θ(p))) # lateral angle
                 push!(accepted, θ_i)
-            # Track rejection if non-constraint bounce not accepted.
             else
+                # Track rejection if non-constraint bounce not accepted.
                 push!(rejected, θ_i)
             end
         end
@@ -263,7 +268,7 @@ function rmc(
         if K(p, m) < η
             push!(solutions, Solution(θ_i, evaluations))
             q, p = refresh_qp(θ_i, m, S)
-            
+
             # Once we've hit our first solution, the system can start
             # accepting/rejecting samples.
             warmed = true

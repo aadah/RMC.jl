@@ -4,10 +4,14 @@ function all_hyperparams(mcmc::Bool=false)
     ϵs::Vector{Real} = logspace(0.9, 0.999, 5)
     ηs::Vector{Real} = logspace(1e-3, 1e-1, 3)
     Δs::Vector{Real} = logspace(1e-4, 1e-2, 3)
+
     if mcmc
         push!(ϵs, 1) # don't remove energy from system
         push!(ηs, Inf) # refresh after every single bounce
+        modes = instances(Mode) # explore over acceptance modes
+        return product(gs, ms, ϵs, ηs, Δs, modes)
     end
+
     return product(gs, ms, ϵs, ηs, Δs)
 end
 
@@ -80,7 +84,7 @@ function mcmc_grid_search(
 
     df = DataFrame()
 
-    for (i, (g, m, ϵ, η, Δ)) in enumerate(all_hyperparams(true))
+    for (i, (g, m, ϵ, η, Δ, mode)) in enumerate(all_hyperparams(true))
         chains = Matrix[]
         stats = @timed for j in 1:num_chains
             result = nothing
@@ -88,6 +92,7 @@ function mcmc_grid_search(
                 result = rmc(
                     E, d, num_samples;
                     g=g, m=m, ϵ=ϵ, η=η, Δ=Δ,
+                    mode=mode,
                     islogenergy=islogenergy,
                     count_by_samples=true,
                     θ_start=random_start_fn(d),
@@ -97,12 +102,12 @@ function mcmc_grid_search(
                 samples = result.accepted
                 push!(chains, collect(hcat(samples...)'))
             catch error
-                @error "Experiment $i [chain $j]" error g m ϵ η Δ
+                @error "Experiment $i [chain $j]" error g m ϵ η Δ mode
             end
         end
 
         if isempty(chains)
-            @error "Experiment $i" error = "no chains" g m ϵ η Δ
+            @error "Experiment $i" error = "no chains" g m ϵ η Δ mode
             continue
         end
 
@@ -114,6 +119,7 @@ function mcmc_grid_search(
         row[:restitution] = ϵ
         row[:eta] = η
         row[:step_size] = Δ
+        row[:mode] = mode
 
         if !isnothing(target)
             # add pval for test statistic (univariate only)
@@ -135,7 +141,7 @@ function mcmc_grid_search(
             # - the test stat pval doesn't reject our null hypothesis
             # - finally, the metric of interest is better
             best = row
-            @info "Current best" best
+            @info "Current best" best...
         end
     end
 
