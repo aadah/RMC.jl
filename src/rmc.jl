@@ -166,6 +166,12 @@ function rmc(
     trajectory, solutions = [], []
     evaluations = 0
 
+    # We start cool and are considered warm once the first fresh happens. We
+    # start warm in the special case where no entropic loss is happening, i.e.
+    # the particle is continuously bouncing. Note: Refreshes may still happen,
+    # depending on how η is set.
+    warmed = ϵ == 1
+
     # TODO: Enforce invariants and log warnings.
     hyperparams = HyperParameters(g, m, ϵ, η, Δ)
 
@@ -237,12 +243,15 @@ function rmc(
             # We don't remove energy from the system, nor consider this location
             # as a possible solution, so we simple continue.
             continue
+        # We only run the acceptance step once warmed.
+        elseif warmed
             # Flip a biased coin to determine whether to accept the candidate.
-        elseif accept_bounce(sim)
-            push!(accepted, θ_i)
+            if accept_bounce(sim)
+                push!(accepted, θ_i)
             # Track rejection if non-constraint bounce not accepted.
-        else
-            push!(rejected, θ_i)
+            else
+                push!(rejected, θ_i)
+            end
         end
 
         p *= restitution(ϵ, sim) # Simulate entropic loss of kinetic energy.
@@ -254,6 +263,10 @@ function rmc(
         if K(p, m) < η
             push!(solutions, Solution(θ_i, evaluations))
             q, p = refresh_qp(θ_i, m, S)
+            
+            # Once we've hit our first solution, the system can start
+            # accepting/rejecting samples.
+            warmed = true
         end
     end
 
