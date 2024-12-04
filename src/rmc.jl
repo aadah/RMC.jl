@@ -21,21 +21,9 @@ function reflect(p::Vector, hyperplane::Function, q::Vector)
     return p
 end
 
-function accept_bounce(p_before::Vector, p_after::Vector)
-    p_before_lat, p_after_lat = θ(p_before), θ(p_after) # we only care about the lateral momentum
-    dots = dot(p_before_lat, p_after_lat)
-    norms = norm(p_before_lat) * norm(p_after_lat)
-    sim = (dots / norms + 1) / 2 # normalize to range [0,1]
-    thresh = rand()
-    return sim >= thresh
-end
-
-function restitution(ϵ::Real, p_before::Vector, p_after::Vector)
-    dots = dot(p_before, p_after)
-    norms = norm(p_before) * norm(p_after)
-    sim = dots / norms
-    return ((1 + sim) + ϵ * (1 - sim)) / 2
-end
+cossim(v1::Vector, v2::Vector) = dot(v1, v2) / (norm(v1) * norm(v2))
+accept_bounce(sim::Real) = (1 + sim) / 2 >= rand()
+restitution(ϵ::Real, sim::Real) = ((1 + sim) + ϵ * (1 - sim)) / 2
 
 function refresh_qp(θ_i::Vector, m::Real, S::Function)
     d = length(θ_i)
@@ -242,17 +230,22 @@ function rmc(
         p_before = p
         p = reflect(p_before, hyperplane, q) # Bounce off of surface or constraint.
 
+        sim = cossim(p_before, p) # Cosine similarity ∈ [-1,1].
+
         # Catch special case where the bounce is off a constraint.
         if hyperplane isa Constraint
             # We don't remove energy from the system, nor consider this location
             # as a possible solution, so we simple continue.
-            push!(rejected, θ_i)
             continue
+            # Flip a biased coin to determine whether to accept the candidate.
+        elseif accept_bounce(sim)
+            push!(accepted, θ_i)
+            # Track rejection if non-constraint bounce not accepted.
+        else
+            push!(rejected, θ_i)
         end
 
-        push!(accepted, θ_i)
-
-        p *= restitution(ϵ, p_before, p) # Simulate entropic loss of kinetic energy.
+        p *= restitution(ϵ, sim) # Simulate entropic loss of kinetic energy.
 
         # If the particle has "puttered out", then we say the trajectory has run
         # its course, and we refresh to begin a new one from which to take
