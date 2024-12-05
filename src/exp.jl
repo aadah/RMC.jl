@@ -149,5 +149,7 @@ function mcmc_grid_search(
         CSV.write(saveto, df)
     end
 
+    @info "Best run" best...
+
     return best
 end
