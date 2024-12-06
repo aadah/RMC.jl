@@ -267,7 +267,11 @@ function rmc(
         # perspective, the sample is a potential solution from the NL opt view.
         if K(p, m) < η
             push!(solutions, Solution(θ_i, evaluations))
-            q, p = refresh_qp(θ_i, m, S)
+
+            # We restart from one of our accepted samples (or the solution if
+            # none are available).
+            θ_0 = isempty(accepted) ? θ_i : rand(accepted)
+            q, p = refresh_qp(θ_0, m, S)
 
             # Once we've hit our first solution, the system can start
             # accepting/rejecting samples.
