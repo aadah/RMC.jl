@@ -35,6 +35,7 @@ function nlopt_grid_search(
                 θ_start=θ_start,
                 constraints=constraints,
                 isobjective=true,
+                max_evaluations=10000000,
             )
             result = stats.value
             @info "Experiment $i" elapsed_seconds = stats.time
