@@ -1,7 +1,7 @@
 function all_hyperparams(mcmc::Bool=false)
     gs::Vector{Real} = logspace(0.1, 2, 5)
     ms::Vector{Real} = logspace(0.1, 2, 5)
-    ϵs::Vector{Real} = logspace(0.9, 0.999, 5)
+    ϵs::Vector{Real} = logspace(0.5, 0.99, 5)
     ηs::Vector{Real} = logspace(1e-3, 1e-1, 3)
     Δs::Vector{Real} = logspace(1e-4, 1e-2, 3)
 
