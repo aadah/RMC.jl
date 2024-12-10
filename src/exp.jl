@@ -104,6 +104,7 @@ function mcmc_grid_search(
                 push!(chains, collect(hcat(samples...)'))
             catch error
                 @error "Experiment $i [chain $j]" error g m ϵ η Δ mode
+                break
             end
         end
 
