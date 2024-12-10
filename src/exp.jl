@@ -1,9 +1,9 @@
 function all_hyperparams(mcmc::Bool=false)
     gs::Vector{Real} = logspace(0.1, 2, 5)
     ms::Vector{Real} = logspace(0.1, 2, 5)
-    ϵs::Vector{Real} = logspace(0.5, 0.99, 5)
+    ϵs::Vector{Real} = [0.25, 0.5, 0.75, 0.9]
     ηs::Vector{Real} = logspace(1e-3, 1e-1, 3)
-    Δs::Vector{Real} = logspace(1e-4, 1e-2, 3)
+    Δs::Vector{Real} = logspace(1e-3, 1e-2, 2)
 
     if mcmc
         push!(ϵs, 1) # don't remove energy from system
