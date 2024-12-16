@@ -75,7 +75,7 @@ function mcmc_grid_search(
     random_start_fn::Function=randn,
     seed::Integer=42,
     target::Union{Nothing,UnivariateDistribution}=nothing,
-    metric::Function=r -> -r[:rhat_median],
+    metric::Function=r -> get(r, :pval_median, 0.0),
     saveto::Union{Nothing,String}=nothing,
     pval_cutoff::Real=0.05,
 )::Dict{Symbol,Any}
